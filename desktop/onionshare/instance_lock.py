@@ -22,20 +22,16 @@ import os
 
 
 def acquire_flatpak_lock(lock_filename):
-    """Acquire the Flatpak GUI lock using an OS-managed advisory lock.
+    """Acquire the Flatpak GUI instance lock.
 
-    Flatpak instances can reuse the same PID inside separate PID namespaces,
-    so the PID stored in the lock file cannot determine whether the previous
-    OnionShare process is still alive. ``flock`` is tied to the open file
-    description instead: the kernel releases it automatically when a process
-    exits or crashes.
-
-    Returns ``(lock_file, None)`` when this process owns the lock, otherwise
-    ``(None, existing_pid)`` when another process still owns it.
+    Flatpak processes can reuse namespace-local PIDs between launches. An
+    advisory file lock is owned by the running process instead, and the kernel
+    releases it automatically when that process exits or crashes.
     """
     import fcntl
 
     lock_file = open(lock_filename, "a+")
+
     try:
         fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
     except BlockingIOError:
@@ -48,4 +44,5 @@ def acquire_flatpak_lock(lock_filename):
     lock_file.truncate()
     lock_file.write(f"{os.getpid()}\n")
     lock_file.flush()
+
     return lock_file, None

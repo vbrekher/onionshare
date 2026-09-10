@@ -4,7 +4,6 @@ from onionshare.instance_lock import acquire_flatpak_lock
 
 
 def test_flatpak_lock_reclaims_stale_reused_pid(tmp_path):
-    """A leftover PID must not block a new Flatpak process after a crash."""
     lock_filename = tmp_path / "lock"
     lock_filename.write_text(f"{os.getpid()}\n")
 
@@ -18,7 +17,6 @@ def test_flatpak_lock_reclaims_stale_reused_pid(tmp_path):
 
 
 def test_flatpak_lock_blocks_live_instance_and_recovers_after_release(tmp_path):
-    """The advisory lock distinguishes a live process from stale PID text."""
     lock_filename = tmp_path / "lock"
 
     first_lock, existing_pid = acquire_flatpak_lock(str(lock_filename))

@@ -205,22 +205,19 @@ def main():
 
     # Is there another onionshare-gui running?
     if common.is_flatpak():
-        # PIDs are namespace-local in Flatpak and can be reused between app
-        # launches. Use an OS-managed file lock instead; it is automatically
-        # released if the previous process exits or crashes.
+        # Flatpak PIDs are namespace-local and can be reused after a crash.
+        # Keep an OS-managed lock open for the lifetime of this process instead.
         flatpak_lock_file, existing_pid = acquire_flatpak_lock(
             common.gui.lock_filename
         )
         if flatpak_lock_file is None:
             print(f"Opening tab in existing OnionShare window (pid {existing_pid})")
 
-            # Make an event for the existing OnionShare window
             if filenames:
                 obj = {"type": "new_share_tab", "filenames": filenames}
             else:
                 obj = {"type": "new_tab"}
 
-            # Write that event to disk
             with open(common.gui.events_filename, "a") as f:
                 f.write(json.dumps(obj) + "\n")
             return
@@ -229,7 +226,6 @@ def main():
             with open(common.gui.lock_filename, "r") as f:
                 existing_pid = int(f.read())
 
-            # Is this process actually still running?
             still_running = True
             if not psutil.pid_exists(existing_pid):
                 still_running = False
@@ -247,27 +243,24 @@ def main():
                     f"Opening tab in existing OnionShare window (pid {existing_pid})"
                 )
 
-                # Make an event for the existing OnionShare window
                 if filenames:
                     obj = {"type": "new_share_tab", "filenames": filenames}
                 else:
                     obj = {"type": "new_tab"}
 
-                # Write that event to disk
                 with open(common.gui.events_filename, "a") as f:
                     f.write(json.dumps(obj) + "\n")
                 return
             else:
                 os.remove(common.gui.lock_filename)
 
-        # Write the lock file
         with open(common.gui.lock_filename, "w") as f:
             f.write(f"{os.getpid()}\n")
 
     def release_lock():
         if flatpak_lock_file is not None:
-            # Keep the Flatpak lock file in place. Its kernel lock, not the PID
-            # text, is authoritative and disappears automatically on close.
+            # Closing releases flock even after ordinary shutdown. Keep the file
+            # itself so a racing process cannot lock an unlinked inode.
             flatpak_lock_file.close()
         elif os.path.exists(common.gui.lock_filename):
             os.remove(common.gui.lock_filename)
