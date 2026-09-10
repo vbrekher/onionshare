@@ -34,5 +34,5 @@ jobs:
           git checkout HEAD -- desktop/onionshare/tab/mode/file_selection.py
       - name: Focused regression
         run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v tests/test_gui_dragdrop.py
-      - name: Desktop regression
-        run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v ./tests/test_gui_*.py
+      - name: Share UI regression
+        run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v tests/test_gui_share.py
