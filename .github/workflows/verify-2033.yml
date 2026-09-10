@@ -21,8 +21,16 @@ jobs:
       - name: Install desktop environment
         run: cd desktop && poetry install
       - name: Check formatting
-        run: cd desktop && poetry run black --check onionshare/__init__.py onionshare/instance_lock.py tests/test_gui_instance_lock.py
+        run: cd desktop && poetry run black --check onionshare/__init__.py onionshare/instance_lock.py onionshare/tab/mode/file_selection.py tests/test_gui_instance_lock.py tests/test_gui_dragdrop.py
+      - name: Confirm drag regression fails before fix
+        run: |
+          git checkout e2b21c3dfbf988741b4de8a5f925cd9e12f5cf71 -- desktop/onionshare/tab/mode/file_selection.py
+          if cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -q tests/test_gui_dragdrop.py; then
+            echo "Regression unexpectedly passed against upstream main"
+            exit 1
+          fi
+          git checkout HEAD -- desktop/onionshare/tab/mode/file_selection.py
       - name: Focused regression
-        run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v tests/test_gui_instance_lock.py
+        run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v tests/test_gui_dragdrop.py tests/test_gui_instance_lock.py
       - name: Desktop regression
         run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v ./tests/test_gui_*.py
