@@ -1,4 +1,4 @@
-name: Verify Flatpak stale lock fix
+name: Verify Flatpak drag fix
 
 on:
   push:
@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
@@ -21,7 +23,7 @@ jobs:
       - name: Install desktop environment
         run: cd desktop && poetry install
       - name: Check formatting
-        run: cd desktop && poetry run black --check onionshare/__init__.py onionshare/instance_lock.py onionshare/tab/mode/file_selection.py tests/test_gui_instance_lock.py tests/test_gui_dragdrop.py
+        run: cd desktop && poetry run black --check onionshare/tab/mode/file_selection.py tests/test_gui_dragdrop.py
       - name: Confirm drag regression fails before fix
         run: |
           git checkout e2b21c3dfbf988741b4de8a5f925cd9e12f5cf71 -- desktop/onionshare/tab/mode/file_selection.py
@@ -31,6 +33,6 @@ jobs:
           fi
           git checkout HEAD -- desktop/onionshare/tab/mode/file_selection.py
       - name: Focused regression
-        run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v tests/test_gui_dragdrop.py tests/test_gui_instance_lock.py
+        run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v tests/test_gui_dragdrop.py
       - name: Desktop regression
         run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v ./tests/test_gui_*.py
