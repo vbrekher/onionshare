@@ -1,4 +1,4 @@
-name: Verify Flatpak drag fix
+name: Verify Flatpak issue 2033 fix
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
       - name: Install desktop environment
         run: cd desktop && poetry install
       - name: Check diff whitespace
-        run: git diff --check e2b21c3dfbf988741b4de8a5f925cd9e12f5cf71 HEAD -- desktop/onionshare/tab/mode/file_selection.py desktop/tests/test_gui_dragdrop.py
+        run: git diff --check e2b21c3dfbf988741b4de8a5f925cd9e12f5cf71 HEAD -- desktop/onionshare/__init__.py desktop/onionshare/instance_lock.py desktop/onionshare/tab/mode/file_selection.py desktop/tests/test_gui_dragdrop.py desktop/tests/test_gui_instance_lock.py
       - name: Confirm drag regression fails before fix
         run: |
           git checkout e2b21c3dfbf988741b4de8a5f925cd9e12f5cf71 -- desktop/onionshare/tab/mode/file_selection.py
@@ -32,7 +32,7 @@ jobs:
             exit 1
           fi
           git checkout HEAD -- desktop/onionshare/tab/mode/file_selection.py
-      - name: Focused regression
-        run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v tests/test_gui_dragdrop.py
-      - name: Share UI regression
-        run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v tests/test_gui_share.py
+      - name: Focused regressions
+        run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v tests/test_gui_dragdrop.py tests/test_gui_instance_lock.py
+      - name: Full desktop GUI regression
+        run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v ./tests/test_gui_*.py
