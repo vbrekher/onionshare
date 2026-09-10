@@ -1,0 +1,30 @@
+name: Verify issue 2033 full fix
+
+on:
+  push:
+    branches:
+      - verify/2033-full-fix
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tor obfs4proxy gcc python3-dev xvfb x11-utils libegl1 libxkbcommon-x11-0 libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev libxcb-render-util0 libxcb-icccm4 libxcb-keysyms1 libxcb-image0
+          pip install --upgrade pip poetry
+      - name: Install desktop environment
+        run: cd desktop && poetry install
+      - name: Check diff whitespace
+        run: git diff --check e2b21c3dfbf988741b4de8a5f925cd9e12f5cf71 b5fa41337d7d4b9519bf5867e1c27a3d50c6ce4e
+      - name: Focused regressions
+        run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v tests/test_gui_dragdrop.py tests/test_gui_instance_lock.py
+      - name: GUI regression
+        run: cd desktop && QT_QPA_PLATFORM=offscreen xvfb-run poetry run pytest -v ./tests/test_gui_*.py
