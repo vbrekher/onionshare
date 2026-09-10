@@ -22,8 +22,8 @@ jobs:
           pip install --upgrade pip poetry
       - name: Install desktop environment
         run: cd desktop && poetry install
-      - name: Check formatting
-        run: cd desktop && poetry run black --check onionshare/tab/mode/file_selection.py tests/test_gui_dragdrop.py
+      - name: Check diff whitespace
+        run: git diff --check e2b21c3dfbf988741b4de8a5f925cd9e12f5cf71 HEAD -- desktop/onionshare/tab/mode/file_selection.py desktop/tests/test_gui_dragdrop.py
       - name: Confirm drag regression fails before fix
         run: |
           git checkout e2b21c3dfbf988741b4de8a5f925cd9e12f5cf71 -- desktop/onionshare/tab/mode/file_selection.py
